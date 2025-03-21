@@ -1,5 +1,5 @@
 using Polly;
-
+using Polly.Retry;
 
 namespace CshScript
 {
@@ -12,9 +12,23 @@ namespace CshScript
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task DownloadPdfsAsync(List<PdfUrl> urlList, string downloadPath, ResiliencePipeline pipeline)
+        public async Task DownloadPdfsAsync(List<PdfUrl> urlList, string downloadPath)
         {
-            using HttpClient client = _httpClientFactory.CreateClient("pdfClient");
+            var pipeline = new ResiliencePipelineBuilder()
+                .AddRetry(new RetryStrategyOptions
+                {
+                    ShouldHandle = new PredicateBuilder().Handle<HttpRequestException>(),
+                    Delay = TimeSpan.FromSeconds(1.5),
+                    MaxRetryAttempts = 2,
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true
+                })
+                .AddConcurrencyLimiter(25, 500)
+                .AddTimeout(TimeSpan.FromSeconds(100))
+                .Build();
+
+
+            HttpClient client = _httpClientFactory.CreateClient("pdfClient");
 
             List<Task> downloadTasks = urlList
                 .Where(url => !File.Exists(Path.Combine(downloadPath, $"{url.Brnummer}.pdf")))
@@ -25,7 +39,7 @@ namespace CshScript
 
         static async Task DownloadPdf(PdfUrl url, HttpClient client, string downloadPath, ResiliencePipeline pipeline)
         {
-            
+
             string pdfPath = Path.Combine(downloadPath, $"{url.Brnummer}.pdf");
             if (await TryDownloadPdf(url.Url, pdfPath, client, pipeline))
             {
@@ -34,11 +48,14 @@ namespace CshScript
             }
             if (url.AlternativeUrl != null)
             {
+                //Console.WriteLine($"Trying alternative url for {url.Brnummer}");
                 if (await TryDownloadPdf(url.AlternativeUrl, pdfPath, client, pipeline))
                 {
-                    url.Downloaded= true;
+                    //Console.WriteLine($"Alternative url succeded for {url.Brnummer}");
+                    url.Downloaded = true;
                     return;
-                };
+                }
+                ;
             }
 
         }
@@ -49,12 +66,17 @@ namespace CshScript
             {
                 if (!await IsPDFHeader(url, client, pipeline))
                 {
+                    //Console.WriteLine($"Not a valid pdf-header {url}");
                     return false;
                 }
 
-                byte[] pdfBytes = await pipeline.ExecuteAsync(async ct => await client.GetByteArrayAsync(url, ct));
-                await File.WriteAllBytesAsync(pdfPath, pdfBytes);
-                Console.WriteLine($"Successfully downloaded PDF from URL: {url}");
+                await pipeline.ExecuteAsync(async ct =>
+                    {
+                        using Stream pdfStream = await client.GetStreamAsync(url, ct);
+                        using FileStream fileStream = new FileStream(pdfPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                        await pdfStream.CopyToAsync(fileStream, ct);
+                    });
+                //Console.WriteLine($"Successfully downloaded PDF from URL: {url}");
                 return true;
             }
             catch (Exception ex)
@@ -76,11 +98,11 @@ namespace CshScript
                 int bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length);
 
                 return bytesRead >= buffer.Length &&
-                       buffer[0] == 0x25 &&
-                       buffer[1] == 0x50 &&
-                       buffer[2] == 0x44 &&
-                       buffer[3] == 0x46 &&
-                       buffer[4] == 0x2D;
+                       buffer[0] == 0x25 && // %
+                       buffer[1] == 0x50 && // P
+                       buffer[2] == 0x44 && // D
+                       buffer[3] == 0x46 && // F
+                       buffer[4] == 0x2D; // -
             }
             catch (Exception)
             {
