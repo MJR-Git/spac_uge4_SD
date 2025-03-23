@@ -1,7 +1,7 @@
 using Polly;
 using Polly.Retry;
 
-namespace CshScript
+namespace CshScript.Utilities
 {
     public class PdfDownloader
     {
@@ -12,8 +12,11 @@ namespace CshScript
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task DownloadPdfsAsync(List<PdfUrl> urlList, string downloadPath)
+
+        // Initiates the download of PDFs from a list of URLs, ensuring resilience and concurrency control.
+        public async Task DownloadPdfsAsync(List<Models.PdfUrl> urlList, string downloadPath)
         {
+            // Configure a resilience pipeline with retry, concurrency limiter, and timeout strategies
             var pipeline = new ResiliencePipelineBuilder()
                 .AddRetry(new RetryStrategyOptions
                 {
@@ -23,13 +26,14 @@ namespace CshScript
                     BackoffType = DelayBackoffType.Exponential,
                     UseJitter = true
                 })
-                .AddConcurrencyLimiter(25, 500)
-                .AddTimeout(TimeSpan.FromSeconds(100))
+                .AddConcurrencyLimiter(30, 500)
+                .AddTimeout(TimeSpan.FromSeconds(80))
                 .Build();
 
-
+            // Create an HTTP client for downloading PDFs
             HttpClient client = _httpClientFactory.CreateClient("pdfClient");
 
+            // Initiate parallel download tasks for each URL that hasn't been downloaded yet
             List<Task> downloadTasks = urlList
                 .Where(url => !File.Exists(Path.Combine(downloadPath, $"{url.Brnummer}.pdf")))
                 .Select(url => DownloadPdf(url, client, downloadPath, pipeline))
@@ -37,55 +41,61 @@ namespace CshScript
             await Task.WhenAll(downloadTasks);
         }
 
-        static async Task DownloadPdf(PdfUrl url, HttpClient client, string downloadPath, ResiliencePipeline pipeline)
-        {
 
+        //Attempts to download a PDF from the primary or alternative URL, marking the URL as downloaded upon success.
+        static async Task DownloadPdf(Models.PdfUrl url, HttpClient client, string downloadPath, ResiliencePipeline pipeline)
+        {
             string pdfPath = Path.Combine(downloadPath, $"{url.Brnummer}.pdf");
-            if (await TryDownloadPdf(url.Url, pdfPath, client, pipeline))
+            if (url.Url != null)
             {
-                url.Downloaded = true;
-                return;
-            }
-            if (url.AlternativeUrl != null)
-            {
-                //Console.WriteLine($"Trying alternative url for {url.Brnummer}");
-                if (await TryDownloadPdf(url.AlternativeUrl, pdfPath, client, pipeline))
+                if (await TryDownloadPdf(url.Url, pdfPath, client, pipeline))
                 {
-                    //Console.WriteLine($"Alternative url succeded for {url.Brnummer}");
                     url.Downloaded = true;
                     return;
                 }
-                ;
             }
-
+            if (url.AlternativeUrl != null)
+            {
+                if (await TryDownloadPdf(url.AlternativeUrl, pdfPath, client, pipeline))
+                {
+                    url.Downloaded = true;
+                    return;
+                }
+            }
         }
 
+        // Tries to download a PDF from the given URL, ensuring the content is a valid PDF.
+        //returnsTrue if the PDF was successfully downloaded, otherwise false.
         static async Task<bool> TryDownloadPdf(string url, string pdfPath, HttpClient client, ResiliencePipeline pipeline)
         {
             try
             {
+                // Check if the URL points to a valid PDF file
                 if (!await IsPDFHeader(url, client, pipeline))
                 {
-                    //Console.WriteLine($"Not a valid pdf-header {url}");
                     return false;
                 }
 
+                // Download the PDF and save it to the specified path
                 await pipeline.ExecuteAsync(async ct =>
-                    {
-                        using Stream pdfStream = await client.GetStreamAsync(url, ct);
-                        using FileStream fileStream = new FileStream(pdfPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                        await pdfStream.CopyToAsync(fileStream, ct);
-                    });
-                //Console.WriteLine($"Successfully downloaded PDF from URL: {url}");
+                {
+                    using Stream pdfStream = await client.GetStreamAsync(url, ct);
+                    using FileStream fileStream = new FileStream(pdfPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await pdfStream.CopyToAsync(fileStream, ct);
+                });
+                Console.WriteLine($"Successfully downloaded PDF from URL: {url}");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error downloading PDF from URL: {url}. Exception: {ex.Message}");
+                Console.WriteLine($"Error downloading PDF {url} from URL: {url}. Exception: {ex.Message}");
                 return false;
             }
         }
 
+
+        // Checks if the content at the given URL is a valid PDF by inspecting the header.
+        // returns True if the content is a valid PDF, otherwise false.
         public static async Task<bool> IsPDFHeader(string url, HttpClient client, ResiliencePipeline pipeline)
         {
             try
@@ -97,6 +107,7 @@ namespace CshScript
                 await using Stream contentStream = await response.Content.ReadAsStreamAsync();
                 int bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length);
 
+                // Check if the first few bytes match the PDF file signature
                 return bytesRead >= buffer.Length &&
                        buffer[0] == 0x25 && // %
                        buffer[1] == 0x50 && // P

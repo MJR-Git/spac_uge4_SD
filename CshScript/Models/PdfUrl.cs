@@ -1,4 +1,4 @@
-namespace CshScript
+namespace CshScript.Models
 {
     public class PdfUrl
     {
