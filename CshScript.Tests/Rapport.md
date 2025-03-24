@@ -23,12 +23,19 @@ public async Task DownloadPdfsAsync(List<Models.PdfUrl> urlList, string download
 ## Fejl hånternig
 
 Sten og glashus  
-Der er ikke nogen direkte fejlhåntering. Der er forbyggende håntering af hvis der ikke bliver gevet en *excelPath* og *outputPath* med en specifik besked. Det samme bliver ikke gjordt for NumberOfRows da den ikke kaster en fejl hvis den ikke bliver funet men sat til 0. File not found bliver dog ikke grebet og hånteret fra **ExcelParser**.  
+Der er ikke nogen direkte fejlhåntering. Der er forbyggende håntering af hvis der ikke bliver gevet en *excelPath* og *outputPath* med en specifik besked. Det samme bliver ikke gjordt for NumberOfRows da den ikke kaster en fejl hvis den ikke bliver funet men sat til 0, den håntere heller ikke hvis de er sat højere end der er rejker. File not found bliver dog ikke grebet og hånteret fra **ExcelParser**.  
 Generelt burde disse exptions gribes og deres messages blive skrevet til en log.
 
 # Testdækning og forbedringer
 
 # Forbedringer
+I exelparser burde der værre en måde hvor nullable verdier bliver sat til *null*
+
+Overvej at bruge ```IEnumarable<T>``` de steder hvor en liste bliver brugt i et foreach loop ex: 
+``` c#
+public async Task DownloadPdfsAsync(IEnumerable<Models.PdfUrl> urlList, string downloadPath)
+```
+Det gør det muglit at bruge mage forskællige tybe samlinger
 
 ## Models
 
@@ -41,3 +48,6 @@ equals er ikke overskrevet så simple ```.equals()``` virker ikke hvis man har d
 ### ExcelParser
 
 Hvor der bliver spunget rows over blev der brugt 500, dette springer de første 500 rows over istedet for kun den første hvor hedere er.
+
+### PdfDownloader
+I DownloadPdf laver null cheks hvor Url og AlternativeUrl vil aldrig værre null på den måde de blev instatieret da *.ToString()* retunrere ```""``` fra et tomt input.
