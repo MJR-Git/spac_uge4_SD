@@ -16,7 +16,6 @@ public class ExcelParserTests
 
         // When
         var actual = ExcelParser.ParseExcel(path, numberOfRows);
-        Thread.Sleep(10);
 
         // Then
         Assert.Equal(numberOfRows, actual.Count);
