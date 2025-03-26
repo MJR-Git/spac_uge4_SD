@@ -29,13 +29,18 @@ Generelt burde disse exptions gribes og deres messages blive skrevet til en log.
 # Testdækning og forbedringer
 
 # Forbedringer
-I exelparser burde der værre en måde hvor nullable verdier bliver sat til *null*
 
 Overvej at bruge ```IEnumarable<T>``` de steder hvor en liste bliver brugt i et foreach loop ex: 
 ``` c#
 public async Task DownloadPdfsAsync(IEnumerable<Models.PdfUrl> urlList, string downloadPath)
 ```
 Det gør det muglit at bruge mage forskællige tybe samlinger
+
+I did [project tree diagram](../README.md/#project-structure) bliver det vist fint som planetext men som formateret markdown kommer de på en linge, der er en måde at se fromateret makdown i vscode. Dette kan løses ved at putte 2 mellemrum efter hvær linge eller bruge html lige skift ```</br>``` ex på begge måder:
+spac_uge4_SD/  
+├── .gitignore  
+├── README.md</br>
+├── CshScript/</br>
 
 ## Models
 
@@ -46,8 +51,9 @@ equals er ikke overskrevet så simple ```.equals()``` virker ikke hvis man har d
 ## Utilities
 
 ### ExcelParser
+I exelparser burde der værre en måde hvor nullable verdier bliver sat til *null*
 
 Hvor der bliver spunget rows over blev der brugt 500, dette springer de første 500 rows over istedet for kun den første hvor hedere er.
 
 ### PdfDownloader
-I DownloadPdf laver null cheks hvor Url og AlternativeUrl vil aldrig værre null på den måde de blev instatieret da *.ToString()* retunrere ```""``` fra et tomt input.
+I DownloadPdf laver null cheks hvor Url og AlternativeUrl vil aldrig værre null på den måde de blev instatieret da ```.ToString()``` retunrere ```""``` fra et tomt input.
