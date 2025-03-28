@@ -37,7 +37,6 @@ public class PdfDownloaderTests : IDisposable
         services.AddTransient<PdfDownloader>();
         pdfDownloader = services.BuildServiceProvider().GetRequiredService<PdfDownloader>();
         pdfs = ExcelParser.ParseExcel(excelPath, 5);
-        Array.ForEach(Directory.GetFiles(pathOut), File.Delete);
 
     }
 
@@ -54,14 +53,6 @@ public class PdfDownloaderTests : IDisposable
         // HTML
         mockHttp.When("http://arpeissig.at/wp-content/uploads/2016/02/D7_NHB_ARP_Final_2.pdf")
                 .Respond("application/html", new MemoryStream(File.ReadAllBytes($"{pathIn}/BR50014.html")));
-        
-        // error  
-        // var tmp = ;
-
-        // .Respond("application/html", new Task<Stream>(e =>
-        // {
-        //     return new MemoryStream(File.ReadAllBytes($"{pathIn}/BR50014.html"));
-        // }, cansel));
 
         return mockHttp;
     }
@@ -72,7 +63,7 @@ public class PdfDownloaderTests : IDisposable
         pdfDownloader = null;
         pdfs = null;
         mockHttp.Dispose();
-        // Array.ForEach(Directory.GetFiles(pathOut), File.Delete);
+        Array.ForEach(Directory.GetFiles(pathOut), File.Delete);
 
     }
 
@@ -104,7 +95,7 @@ public class PdfDownloaderTests : IDisposable
         string pdfPath2 = $"{pathOut}/BR50968.pdf";
 
         var noEmptyAlternativeUrls = pdfs!.Where(p =>
-                p.AlternativeUrl != "" )
+                p.AlternativeUrl != "")
             .ToList();
 
         // When
@@ -116,49 +107,34 @@ public class PdfDownloaderTests : IDisposable
 
     }
 
-    /*
-      // Theis try to get into the catchblock i TryDownloadPdf but it does not seem posible
+
     [Fact]
     public async Task FailInTryDownlad()
     {
         // Given
         pdfs = pdfs!.Where(p => p.Brnummer.Equals("BR52291")).ToList();
         var request = mockHttp.When(pdfs[0].Url!);
-        var tmp1 = (HttpRequestMessage req) =>
+
+        Stream pdfStream = new MemoryStream(File.ReadAllBytes($"{pathIn}/BR50968.pdf"));
+        request.Respond(async () =>
         {
-            // new Task(() => { Thread.Sleep(3000);}, cansel.Token).Start();
+            await Task.Delay(10);
             var response = new HttpResponseMessage();
-            
-            response.Content = new ByteArrayContent(File.ReadAllBytes($"{pathIn}/BR50968.pdf")[0..10]);
+
+            response.Content = new StreamContent(pdfStream);
             response.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            return new HttpResponseMessage();
-        };
-        // request.Respond(tmp1);
-        request
-                .Respond("application/pdf", new MemoryStream(File.ReadAllBytes($"{pathIn}/BR50968.pdf")));
-        // When
+            return response;
+        });
+
         pdfDownloader!.DownloadPdfsAsync(pdfs, pathOut);
-        cansel.Cancel();
-        // Then
+        while (pdfStream.CanSeek && pdfStream.Position == 0)
+        {
+            await Task.Delay(1);
+        }
+        pdfStream.Close();
+
         Assert.Empty(Directory.GetFiles(pathOut));
 
     }
-    [Fact]
-    public async Task FailInTryDownladDoesNotStop()
-    {
-        // Given
-        string pdfPath1 = $"{pathOut}/BR50481.pdf";
-        string pdfPath2 = $"{pathOut}/BR50968.pdf";
-
-        var noEmptyAlternativeUrls = pdfs!.Where(p => p.AlternativeUrl != "").ToList();
-
-        // When
-        await pdfDownloader!.DownloadPdfsAsync(noEmptyAlternativeUrls!, pathOut);
-
-        // Then
-        Assert.True(File.Exists(pdfPath1));
-        Assert.True(File.Exists(pdfPath2));
-
-    }
-    */
+    
 }
