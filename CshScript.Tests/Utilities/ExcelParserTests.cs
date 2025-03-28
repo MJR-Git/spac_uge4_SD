@@ -1,7 +1,6 @@
 namespace CshScript.Tests.Utilities;
 using Xunit;
 using CshScript.Utilities;
-using CshScript.Tests.TestUtils;
 using CshScript.Tests.TestUtilitys;
 
 public class ExcelParserTests
