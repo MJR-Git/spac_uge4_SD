@@ -1,18 +1,12 @@
 ﻿namespace CshScript.Tests.Utilities;
 
-using System.Diagnostics.Tracing;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CshScript.Models;
 using CshScript.Tests.TestUtilitys;
 using CshScript.Utilities;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
-using Moq;
-using Moq.Protected;
 using RichardSzalay.MockHttp;
-using Xunit.Sdk;
 
 /// <summary>
 /// This test class assuemes that the excel parser works
