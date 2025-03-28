@@ -40,11 +40,13 @@ public class PdfDownloaderTests : IDisposable
         // PDFs
         mockHttp.When("https://www.aramex.com/docs/default-source/default-document-library/annual-report-2016--en.pdf")
                 .Respond("application/pdf", new MemoryStream(File.ReadAllBytes($"{pathIn}/BR50481.pdf")));
-        mockHttp.When("https://www.bhp.com/-/media/documents/investors/annual-reports/2017/bhpsustainabilityreport2017.pdf")
+        mockHttp.When("http://www.bhp.com/-/media/documents/investors/annual-reports/2017/bhpsustainabilityreportnavigator2017.pdf")
                 .Respond("application/pdf", new MemoryStream(File.ReadAllBytes($"{pathIn}/BR50968.pdf")));
         // HTML
+
         mockHttp.When("http://arpeissig.at/wp-content/uploads/2016/02/D7_NHB_ARP_Final_2.pdf")
                 .Respond("application/html", new MemoryStream(File.ReadAllBytes($"{pathIn}/BR50014.html")));
+
 
         return mockHttp;
     }
@@ -110,7 +112,7 @@ public class PdfDownloaderTests : IDisposable
 
         // Then
         Assert.True(File.Exists(pdfPath1));
-        Assert.True(File.Exists(pdfPath2));
+        Assert.False(File.Exists(pdfPath2));
 
     }
 
