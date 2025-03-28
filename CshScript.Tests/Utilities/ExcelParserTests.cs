@@ -11,7 +11,7 @@ public class ExcelParserTests
     {
         // Given
         var path = Path.Combine(SlnPath.TryGetSolutionDirectoryInfo().FullName, "CshScript.Tests\\Resourses\\pdf.xlsx");
-        var numberOfRows = 2;
+        var numberOfRows = 4;
 
         // When
         var actual = ExcelParser.ParseExcel(path, numberOfRows);
