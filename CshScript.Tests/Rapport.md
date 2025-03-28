@@ -67,4 +67,15 @@ I exelparser burde der værre en måde hvor nullable verdier bliver sat til *nul
 Hvor der bliver spunget rows over blev der brugt 500, dette springer de første 500 rows over istedet for kun den første hvor hedere er.
 
 ### PdfDownloader
-I DownloadPdf laver null cheks hvor Url og AlternativeUrl vil aldrig værre null på den måde de blev instatieret da ```.ToString()``` retunrere ```""``` fra et tomt input.
+I DownloadPdf laver null cheks hvor Url og AlternativeUrl vil aldrig værre null på den måde de blev instatieret da ```.ToString()``` retunrere ```""``` fra et tomt input. Dette kan ses ved at kørre **DownloadOnlyPdfs** tæsten som debug med et brackepoint her:
+``` c#
+if (url.Url != null)
+{
+    /* Brakepoint */ if (await TryDownloadPdf(url.Url, pdfPath, client, pipeline)) 
+    {
+        url.Downloaded = true;
+        return;
+    }
+}
+```
+Og kigge efter den *PdfUrl* med Brnummer: BR50968
