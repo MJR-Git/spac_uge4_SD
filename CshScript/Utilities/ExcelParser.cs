@@ -20,7 +20,7 @@ namespace CshScript.Utilities
                 var excelWorksheet = workbook.Worksheet(1);
 
                 // Get the rows to be processed, skipping the header row and taking the specified number of rows
-                var rows = excelWorksheet.RowsUsed().Skip(500).Take(numberOfRows).ToList();
+                var rows = excelWorksheet.RowsUsed().Skip(1).Take(numberOfRows).ToList(); // TODO: 1 insted of 500, so the first 499 of nonheadder rows are not skiped
 
                 // Create a dictionary to map header names to their column numbers
                 var headers = excelWorksheet.Row(1).Cells().ToDictionary(cell => cell.Value.ToString(), cell => cell.Address.ColumnNumber);
