@@ -24,11 +24,9 @@ public class PdfDownloaderTests : IDisposable
     private static readonly string pathOut = Path.Combine(SlnPath.TryGetSolutionDirectoryInfo().FullName, "CshScript.Tests/Resourses/pdfs_out");
     PdfDownloader? pdfDownloader { get; set; }
     List<PdfUrl>? pdfs { get; set; }
-    CancellationTokenSource cansel { get; set; }
     MockHttpMessageHandler mockHttp { get; set; }
     public PdfDownloaderTests()
     {
-        cansel = new CancellationTokenSource();
         mockHttp = CreateMock();
 
         var services = new ServiceCollection();
