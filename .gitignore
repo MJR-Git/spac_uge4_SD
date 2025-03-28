@@ -488,3 +488,5 @@ data/
 prev_python_script/
 
 Diagram.puml
+
+/CshScript.Tests/Resourses/pdfs_out

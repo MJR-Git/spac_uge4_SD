@@ -71,3 +71,6 @@ To downoad all necesarry packages write "dotnet restore" in the command line. Wr
 The following diagram provides an overview of the program classes and their interactions:
 
 ![Uml class diagram](Diagram.png)
+
+# Test report
+[Report](CshScript.Tests/Rapport.md)
