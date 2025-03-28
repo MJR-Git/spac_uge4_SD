@@ -42,10 +42,15 @@ Overvej at bruge ```IEnumarable<T>``` de steder hvor en liste bliver brugt i et 
 ``` c#
 public async Task DownloadPdfsAsync(IEnumerable<Models.PdfUrl> urlList, string downloadPath)
 ```
-Det gør det muglit at bruge mage forskællige tybe samlinger. Dette gør det også mugligt at burge yield keywordet for at retunere en salming inde fra en for/foreach løkke ex:  
+Hvis lingen ovenover ville ikke ændre programmet men gørre det muglit at bruge mage forskællige tybe samlinger som input, ex. hvis man ville værre sikker på at der ikke var nogen dubletter kunne man burge et ```Set<T>``` istedet for en ```List<T>```. Dette gør det også mugligt at burge yield keywordet for at retunere en salming inde fra en for/foreach løkke ex:  
 ``` c#
-public IEnumarable<foo>
+public IEnumarable<foo> bar(ICollection someCollection){
+    foreach(element in someCollection){
+        yield return element.name
+    }
+}
 ```
+Dette er dog ikke rigig relevant for dette pogram da alle foreach løgger der retunere et nyt set af elementer bliver kørt inde i et ```Parallel.ForEach``` hvor det ikke er mugligt at burge yield keywordet.
 
 I dit [project tree diagram](../README.md/#project-structure) bliver det vist fint som planetext men som formateret markdown kommer de på en linge, der er en måde at se fromateret makdown i vscode. Dette kan løses ved at putte 2 mellemrum efter hvær linge eller bruge html lige skift ```</br>``` ex på begge måder:
 spac_uge4_SD/  
