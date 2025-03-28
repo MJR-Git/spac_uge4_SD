@@ -118,12 +118,12 @@ public class PdfDownloaderTests : IDisposable
         {
             await Task.Delay(10);
             var response = new HttpResponseMessage();
-
             response.Content = new StreamContent(pdfStream);
             response.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             return response;
         });
 
+        //When
         pdfDownloader!.DownloadPdfsAsync(pdfs, pathOut);
         while (pdfStream.CanSeek && pdfStream.Position == 0)
         {
@@ -131,6 +131,7 @@ public class PdfDownloaderTests : IDisposable
         }
         pdfStream.Close();
 
+        //Then
         Assert.Empty(Directory.GetFiles(pathOut));
 
     }
