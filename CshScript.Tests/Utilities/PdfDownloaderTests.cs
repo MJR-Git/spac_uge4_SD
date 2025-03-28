@@ -62,7 +62,6 @@ public class PdfDownloaderTests : IDisposable
         pdfs = null;
         mockHttp.Dispose();
         Array.ForEach(Directory.GetFiles(pathOut), File.Delete);
-
     }
 
     /// <summary>
@@ -85,6 +84,22 @@ public class PdfDownloaderTests : IDisposable
         Assert.True(File.Exists(pdfPath2));
         Assert.False(File.Exists(pdfPath3));
     }
+
+    [Fact]
+    public async Task OnlyHtmlAsync()
+    {
+        // Given
+        string pdfPath3 = $"{pathOut}/BR50014.pdf";
+        pdfs = pdfs!.Where(p => p.Brnummer.Equals("BR50014")).ToList();
+
+        // When
+        await pdfDownloader!.DownloadPdfsAsync(pdfs, pathOut);
+
+        // Then
+        Assert.False(File.Exists(pdfPath3));
+
+    }
+
     [Fact]
     public async Task NoEmptyAlternetiveUrls()
     {
@@ -135,5 +150,5 @@ public class PdfDownloaderTests : IDisposable
         Assert.Empty(Directory.GetFiles(pathOut));
 
     }
-    
+
 }
