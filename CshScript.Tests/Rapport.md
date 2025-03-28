@@ -1,8 +1,11 @@
-# Resultater
+# Kørning af testsne
+Run ```dotnet restore``` then ```dotnet test``` in the tearminal at the project root
+
 
 # Kodekvalitet
 
 ## Kode orginitation
+Fint organiceret, jeg ville nok have klat Models mappen Entitys men begge er valide
 
 ## Kode kommentare
 
@@ -21,12 +24,17 @@ public async Task DownloadPdfsAsync(List<Models.PdfUrl> urlList, string download
 ```
 
 ## Fejl hånternig
+  
+Der er ikke nogen direkte fejlhåntering. Der er forbyggende håntering af hvis der ikke bliver gevet en *excelPath* og *outputPath* med en specifik besked. Det samme bliver ikke gjordt for NumberOfRows da den ikke kaster en fejl hvis den ikke bliver funet men sat til 0. File not found bliver dog ikke grebet og hånteret fra **ExcelParser**.  
+Generelt burde disse exptions gribes og deres messages blive skrevet til en log.  
 
-Sten og glashus  
-Der er ikke nogen direkte fejlhåntering. Der er forbyggende håntering af hvis der ikke bliver gevet en *excelPath* og *outputPath* med en specifik besked. Det samme bliver ikke gjordt for NumberOfRows da den ikke kaster en fejl hvis den ikke bliver funet men sat til 0, den håntere heller ikke hvis de er sat højere end der er rejker. File not found bliver dog ikke grebet og hånteret fra **ExcelParser**.  
-Generelt burde disse exptions gribes og deres messages blive skrevet til en log.
+Der hvor der er catch bloks bliverder græbet den generele Exeption istedet for at girbe enden grupper af exeptions, så som IOExeption, eller specifike, så som FileNotFoundException.
 
-# Testdækning og forbedringer
+
+# Testdækning
+Dækker alt untalen catch blocken i TryDownloadPdf i PdfDownloader og Program filen.  
+Ender med 82% for hele projektet og 99% af Utilites.  
+
 
 # Forbedringer
 
@@ -34,9 +42,12 @@ Overvej at bruge ```IEnumarable<T>``` de steder hvor en liste bliver brugt i et 
 ``` c#
 public async Task DownloadPdfsAsync(IEnumerable<Models.PdfUrl> urlList, string downloadPath)
 ```
-Det gør det muglit at bruge mage forskællige tybe samlinger
+Det gør det muglit at bruge mage forskællige tybe samlinger. Dette gør det også mugligt at burge yield keywordet for at retunere en salming inde fra en for/foreach løkke ex:  
+``` c#
+public IEnumarable<foo>
+```
 
-I did [project tree diagram](../README.md/#project-structure) bliver det vist fint som planetext men som formateret markdown kommer de på en linge, der er en måde at se fromateret makdown i vscode. Dette kan løses ved at putte 2 mellemrum efter hvær linge eller bruge html lige skift ```</br>``` ex på begge måder:
+I dit [project tree diagram](../README.md/#project-structure) bliver det vist fint som planetext men som formateret markdown kommer de på en linge, der er en måde at se fromateret makdown i vscode. Dette kan løses ved at putte 2 mellemrum efter hvær linge eller bruge html lige skift ```</br>``` ex på begge måder:
 spac_uge4_SD/  
 ├── .gitignore  
 ├── README.md</br>
